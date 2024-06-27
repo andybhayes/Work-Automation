@@ -1,0 +1,23 @@
+import csv
+import os
+file =""
+
+x=open(file)
+result=[]
+c=0
+with open(r"file) as f:
+    writer = csv.writer(f)
+    writer.writerow(["Number"])
+    for line in x:
+        line = ["".join(filter(str.isdigit, element)) for element in line.split(",")]
+        line[1] = int(line[1])
+        line[3] = int(line[3])
+        while line[3]!=0:
+            x=(line[1:2])
+            writer.writerow(x)
+            c+=1
+            line[1]+=1
+            line[3]-=1
+os.remove(r"old file")
+
+print(f"{c} rows written")
