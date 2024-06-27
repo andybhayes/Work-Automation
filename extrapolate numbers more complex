@@ -1,0 +1,83 @@
+import csv
+import os
+import pandas as pd
+
+final = []
+# file2 = r"Cexport_numbers (1).csv"
+# file1 = r"export_numbers.csv"
+def combine():
+    file2 = r"export_numbers (1).csv"
+    file1 = r"export_numbers.csv"
+
+    with open(file1, 'r') as f1, open(file2, 'r') as f2:
+        # Read the contents of both files
+        file1_contents = f1.read()
+        file2_contents = f2.read()
+
+    # Open file2 in append mode
+    with open(file2, 'a') as f2:
+        try:
+            os.remove(r"combinedAlpha.csv")
+        except FileNotFoundError:
+            print("No previous Alphacombine file found")
+        # Write the contents of file1 to file2
+        os.chdir(r"Downloads")
+        f2.write(file1_contents)
+    os.rename (file2, "combinedAlpha.csv")
+#
+# df=pd.read_csv(file2)
+# print(df.info())
+
+
+
+
+def convert():
+    combined=r"combinedAlpha.csv"
+    emplist=[]
+    x=open(combined)
+    c=0
+    #Adds 0 or 00 to the numbers after removed extra data using excel
+    for i in x:
+        #i=i.strip().replace('"',"").split(";")
+        i=i.strip().replace('"',"").split(",")
+        if i[1]=="1":
+            emplist.append(i)
+        elif i[1] =="10":
+            i[0]=i[0]+"0"
+            emplist.append(i)
+        elif i[1] =="100":
+            i[0]=i[0]+"00"
+            emplist.append(i)
+        else:
+            print("Unknown number multipliers, make new modification")
+            quit
+
+    ### Expands the number range and inserts into a list
+    for col in emplist:
+        col[0] = int(col[0])
+        col[1] = int(col[1])
+        while col[1] != 0:
+            final.append(col[0])
+            col[1] -= 1
+            col[0] += 1
+            c+=1# counts rows
+
+
+#writes the csv file within downloads
+def makefile():
+    c=0
+    file_name = r'AlphalinkFinal.csv"
+    with open(file_name,"w",newline="") as csvfile:
+        writer=csv.writer(csvfile)
+        writer.writerow(["Number"])
+        for item in final:
+            c+=1
+            writer.writerow([item])
+    print(f"Conversion completed with {c} rows")
+    os.remove(r"combinedAlpha.csv")
+    os.remove(r"export_numbers.csv")
+
+
+combine()
+convert()
+makefile()
