@@ -1,0 +1,119 @@
+import pysftp
+import os
+
+class Sftp:
+    def __init__(self, hostname, username, password, port=22):
+        """Constructor Method"""
+        self.connection = None
+        self.hostname = hostname
+        self.username = username
+        self.password = password
+        self.port = port
+
+    def connect(self):
+        """Connects to the sftp server and returns the sftp connection object"""
+        try:
+            cnopts = pysftp.CnOpts()
+            cnopts.hostkeys = None  # Disable host key checking
+
+            self.connection = pysftp.Connection(
+                host=self.hostname,
+                username=self.username,
+                password=self.password,
+                port=self.port,
+                cnopts=cnopts
+            )
+        except Exception as err:
+            raise Exception(err)
+        finally:
+            print(f"Connected to {self.hostname} as {self.username}.")
+
+    def disconnect(self):
+        """Closes the sftp connection"""
+        if self.connection:
+            self.connection.close()
+            print(f"Disconnected from host {self.hostname}")
+
+    def listdir(self, remote_path):
+        """Lists all the files and directories in the specified path and returns them"""
+        return self.connection.listdir(remote_path)
+
+    def listdir_attr(self, remote_path):
+        """Lists all the files and directories (with their attributes) in the specified path and returns them"""
+        return self.connection.listdir_attr(remote_path)
+
+    def download_file(self, remote_file, local_file):
+        """Downloads a file from the remote SFTP server to the local file system"""
+        try:
+            self.connection.get(remote_file, local_file)
+            print(f"File downloaded: {remote_file} -> {local_file}")
+        except Exception as e:
+            print(f"Failed to download file {remote_file}: {e}")
+
+    def is_dir(self, remote_path):
+        """Checks if the given remote path is a directory"""
+        try:
+            return self.connection.isdir(remote_path)
+        except IOError:
+            return False
+
+    def list_all_files(self, remote_path):
+        """Recursively lists all files in all directories starting from remote_path"""
+        file_list = []
+        directories = [remote_path]
+
+        while directories:
+            current_path = directories.pop()
+            items = self.listdir(current_path)
+
+            for item in items:
+                full_path = os.path.join(current_path, item)
+                if self.is_dir(full_path):
+                    directories.append(full_path)
+                else:
+                    file_list.append(full_path)
+
+        return file_list
+
+
+if __name__ == "__main__":
+    # Define your hostname, username, and password
+    hostname = ''
+    username = ''
+    password = ''
+
+    sftp = Sftp(hostname, username, password)
+    try:
+        remote_path = r"/InvoicePDFs"
+        local_directory = r"s"
+
+        sftp.connect()
+        file_list = sftp.list_all_files(remote_path)
+
+        # Write the file list to a CSV file without the base directory in paths
+        #'utf-8' needed due to 'ā' character
+        with open(r"", "w", encoding='utf-8') as f:
+            for file in file_list:
+                relative_file = os.path.relpath(file, remote_path)
+                if relative_file:
+                    f.write(relative_file + "\n")
+
+        # Check if each file exists locally and download if not
+        for file in file_list:
+            relative_file = os.path.relpath(file, remote_path)
+            local_file_path = os.path.join(local_directory, relative_file)
+            local_file_dir = os.path.dirname(local_file_path)
+
+            # Create local directories if they don't exist
+            if not os.path.exists(local_file_dir):
+                os.makedirs(local_file_dir)
+
+            # Download the file if it doesn't exist locally
+            if not os.path.exists(local_file_path):
+                sftp.download_file(file, local_file_path)
+
+    except Exception as e:
+        print(f"Something went wrong: {e}")
+
+    finally:
+        sftp.disconnect()
