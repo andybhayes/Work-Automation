@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 final = []
-# file2 = r"Cexport_numbers (1).csv"
+# file2 = r"export_numbers (1).csv"
 # file1 = r"export_numbers.csv"
 def combine():
     file2 = r"export_numbers (1).csv"
@@ -66,7 +66,7 @@ def convert():
 #writes the csv file within downloads
 def makefile():
     c=0
-    file_name = r'AlphalinkFinal.csv"
+    file_name = r"AlphalinkFinal.csv"
     with open(file_name,"w",newline="") as csvfile:
         writer=csv.writer(csvfile)
         writer.writerow(["Number"])
