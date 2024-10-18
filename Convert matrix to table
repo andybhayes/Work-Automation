@@ -1,0 +1,44 @@
+below changes a large matrix into a more readable table
+
+import polars as pl
+import os
+pl.Config.set_tbl_rows(30)
+pl.Config.set_tbl_cols(30)
+
+#Enter the location of where you wnat the output file here
+os.chdir(r"C:\Users\output folder")
+
+#master will be the location of the matrix.csv tou wnat converting to a table
+master=r"C:\Users\matrixtable.csv"
+
+#loads the csv into a dataframe
+master=pl.read_csv(master)
+
+
+#this will convert teh matrix table into a normal looking table
+pivoted=master.unpivot(index=['Package Name', 'Service Name'], variable_name='Name', value_name='Price')
+
+#chnage name of columns
+pivoted=pivoted.rename({'Package Name':"Package","Service Name":"Service"})
+
+
+#selects the order of columns
+pivoted=pivoted.select(["Name","Package","Service","Price"])
+
+
+#makes ure Price is a float and not str
+pivoted= pivoted.with_columns(pl.col("Price").cast(pl.Float64, strict=False))
+
+
+#Rounds price to 2 deciamls
+pivoted=pivoted.with_columns(pl.col("Price").round(2))
+
+#sorts the output  first by name then package then service
+pivoted = pivoted.sort("Name", "Package", "Service")
+
+
+#drops duplicates
+df=pivoted.unique().sort("Name", "Package", "Service")
+
+#Change "all_matrix" to the filename you wnat creating
+df.write_csv("all_matrix.csv")
