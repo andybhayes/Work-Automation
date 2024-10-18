@@ -1,23 +1,40 @@
 import csv
 import os
-file =""
 
-x=open(file)
-result=[]
-c=0
-with open(r"file) as f:
-    writer = csv.writer(f)
-    writer.writerow(["Number"])
-    for line in x:
-        line = ["".join(filter(str.isdigit, element)) for element in line.split(",")]
-        line[1] = int(line[1])
-        line[3] = int(line[3])
-        while line[3]!=0:
-            x=(line[1:2])
-            writer.writerow(x)
-            c+=1
-            line[1]+=1
-            line[3]-=1
-os.remove(r"old file")
+
+file =r""
+result = []
+c = 0
+
+# Open input file for reading
+with open(file, 'r') as f:
+    reader = csv.reader(f)
+
+    # Open output file for writing
+    with open("gammaFinal.csv", 'w', newline='') as output_file:
+        writer = csv.writer(output_file)
+        writer.writerow(["Number"])
+
+        # Process each line
+        for line in reader:
+            # Filter digits and convert to list (ensure elements are strings)
+            line = ["".join(filter(str.isdigit, element)) for element in line]
+
+            # Try to convert line elements to integers
+            try:
+                line[1] = int(line[1])  # Assuming line[1] is the number you want to increment
+                line[3] = int(line[3])  # Assuming line[3] is the counter
+            except (IndexError, ValueError):
+                # Handle any issues with missing elements or conversion
+                continue
+
+            # Write values while counter is not zero
+            while line[3] != 0:
+                x = line[1:2]  # Slice containing element at index 1
+                writer.writerow(x)
+                c += 1
+                line[1] += 1  # Increment the value
+                line[3] -= 1  # Decrement the counter
+
 
 print(f"{c} rows written")
